@@ -32,14 +32,16 @@ export interface LocalCatalog {
 const BASE_CATALOG: CatalogApp[] = [
 	// Global streaming
 	{id: 'youtube.leanback.v4', title: 'YouTube', icon: 'youtube.leanback.v4.png'},
-	{id: 'netflix', title: 'Netflix', color: '#b1060f'},
+	{id: 'netflix', title: 'Netflix', icon: 'netflix.png'},
 	{id: 'amazon', title: 'Prime Video', icon: 'amazon.png'},
 	{id: 'com.disney.disneyplus-prod', title: 'Disney+', color: '#0f2b6b'},
 	{id: 'com.apple.appletv', title: 'Apple TV', icon: 'com.apple.appletv.png'},
 	{id: 'com.wbd.stream', title: 'Max', color: '#002be7'},
 	{id: 'cdp-30', title: 'Plex', icon: 'cdp-30.png'},
-	{id: 'spotify-beehive', title: 'Spotify', color: '#1db954'},
+	{id: 'spotify-beehive', title: 'Spotify', icon: 'spotify-beehive.png'},
 	{id: 'tv.twitch.tv.starshot.lg', title: 'Twitch', icon: 'tv.twitch.tv.starshot.lg.png'},
+	// India
+	{id: 'hotstar', title: 'JioHotstar', icon: 'hotstar.png'},
 	// North America
 	{id: 'hulu', title: 'Hulu', color: '#1ce783'},
 	{id: 'youtube.leanback.ytv.v1', title: 'YouTube TV', color: '#cc0000'},
@@ -73,7 +75,7 @@ const BASE_CATALOG: CatalogApp[] = [
 /** Apps shown on a fresh install, in row order. Anything not installed is skipped. */
 const BASE_DEFAULT_APP_IDS: string[] = [
 	'youtube.leanback.v4', 'netflix', 'amazon', 'com.disney.disneyplus-prod',
-	'com.apple.appletv', 'com.wbd.stream', 'cdp-30', 'spotify-beehive'
+	'com.apple.appletv', 'com.wbd.stream', 'cdp-30', 'spotify-beehive', 'hotstar'
 ];
 
 // Vite resolves this at build time; it's an empty object when the file doesn't exist.

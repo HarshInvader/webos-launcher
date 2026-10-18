@@ -3,43 +3,40 @@
 // components read the same values.
 
 export const COLOR = {
-	bg: '#000000',
-	bgGradientInner: '#1e1e1e',
-	bgGradientMid: '#0c0c0c',
-	bgGradientOuter: '#000000',
-	textPrimary: '#EEEEEE',
-	textSecondary: '#AAAAAA',
-	textMuted: '#666666',
-	tileBg: '#161616',
-	tileBgFocus: '#202020',
-	tileBorder: '#2a2a2a',
-	tileBorderFocus: '#EEEEEE',
-	badge: '#EEEEEE',
+	// tvOS dark appearance: near-black canvas, white text, greys from Apple's system palette
+	bg: '#0b0b0d',
+	textPrimary: '#FFFFFF',
+	textSecondary: 'rgba(235, 235, 245, 0.78)',
+	textMuted: 'rgba(235, 235, 245, 0.5)',
+	tileBg: '#1c1c1e',
+	tileBgFocus: '#2c2c2e',
+	tileBorder: 'rgba(255, 255, 255, 0.12)',
+	tileBorderFocus: '#FFFFFF',
+	badge: '#FFFFFF',
 	badgeText: '#000000',
 	liftShadow: 'rgba(0, 0, 0, 0.7)',
-	buttonBorder: '#3a3a3a',
-	buttonActiveBg: '#EEEEEE',
+	focusShadow: 'rgba(0, 0, 0, 0.6)',
+	buttonBorder: 'rgba(255, 255, 255, 0.18)',
+	buttonActiveBg: '#FFFFFF',
 	buttonActiveText: '#000000',
-	switchTrack: '#333333',
-	switchTrackOn: '#EEEEEE',
+	switchTrack: '#3a3a3c',
+	switchTrackOn: '#FFFFFF',
 	switchKnob: '#AAAAAA',
 	switchKnobOn: '#000000',
-	danger: '#e0564f'
+	danger: '#ff453a'
 } as const;
 
 export const FONT = {
 	family: '"Inter Variable", "LG Smart UI", "Helvetica Neue", Arial, sans-serif',
-	greeting: 72,
-	clock: 32,
-	clockTime: 44,
-	rowLabel: 20,
-	tileLabel: 19,
+	tileLabel: 18,
+	homeTileLabel: 25,
+	shelfTitle: 76,
+	homeMonogram: 44,
 	settingsTitle: 40,
 	settingsTab: 26,
 	settingsButton: 22,
 	optionLabel: 26,
 	optionDescription: 20,
-	clockPeriod: 22,
 	toast: 24
 } as const;
 
@@ -48,21 +45,29 @@ export const LAYOUT = {
 	screenHeight: 1080,
 	edgePadding: 140,       // heavy padding around the screen edges
 	headerTop: 84,
-	rowsTop: 236,           // rows start here, below the greeting and clock
 	tileSize: 144,          // app / source tiles are square
 	tileGap: 28,
 	tileRadius: 24,
-	rowLabelGap: 14,        // gap between a row's subheader and its tiles
-	rowGap: 28,             // vertical space between rows
+	// home screen (Apple TV layout): 5 wide icons a line, the first line under the top shelf
+	homeColumns: 5,
+	homeTileWidth: 310,
+	homeTileHeight: 186,    // 5:3, the tvOS app icon shape
+	homeTileGap: 48,
+	homeTileRadius: 14,
+	homeLineGap: 84,        // room for the focused tile's label
+	homeGridTop: 662,       // first line; the second peeks in at the bottom
+	homeFocusTop: 150,      // where a lower line sits once the grid has scrolled up
+	homeBottomMargin: 140,  // the grid never scrolls its last line above this
 	gridColumns: 9          // settings picker grid
 } as const;
 
 export const MOTION = {
 	focusMs: 160,
 	scrollMs: 260,
+	shelfMs: 420,
 	focusScale: 1.12,
-	liftScale: 1.2,         // a tile picked up in re-order mode
-	unfocusedRowOpacity: 0.55
+	homeFocusScale: 1.1,
+	liftScale: 1.2          // a tile picked up in re-order mode
 } as const;
 
 /** Writes every token onto :root as --color-*, --font-*, --layout-*, --motion-*. */

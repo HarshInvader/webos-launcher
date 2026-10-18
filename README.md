@@ -1,25 +1,33 @@
-# webOS Launcher
+# webOS Launcher, Apple TV edition
 
-A minimalist home screen for LG webOS TVs: a greeting and clock, a row of your apps, a
-row of your inputs, and a way back to LG's own home. Built for **webOS 6 (Chrome 79)**,
-where sideloaded web apps are more restricted than on newer firmware.
+An Apple TV–style home screen for LG webOS TVs. It's a fork of
+[partridgeworks/webos-launcher](https://github.com/partridgeworks/webos-launcher),
+restyled after tvOS and tuned to run at 60fps on the TV.
 
-- **Apps**: your choice of apps, in your order
-- **Sources**: Live TV and the HDMI inputs, with the names set in the TV's input settings
-- **More**: LG's own home screen, and Settings
-- Black background with a soft grey gradient, lots of space, remote-first navigation
-- Follows the TV's 12/24-hour clock setting
+![Home screen with the top shelf](docs/home.png)
+
+- **Top shelf**: the focused app's artwork fills the top of the screen, blurred, with its
+  name in large type
+- **tvOS grid**: wide rounded icons, five to a line. The focused icon lifts with a shadow
+  and a sweep of light, and only it shows its name
+- **Apps, then sources, then More**: your apps in your order, Live TV and the HDMI inputs,
+  LG's own home and Settings
+- **Smooth on TV hardware**: everything that moves is transform or opacity, the top-shelf
+  blur is baked once per app, and a focus move re-renders only two tiles
+- Inter Display type, the closest open match to Apple's SF Pro
 - No root, no background service, no startup scripts: a plain app in its own sandbox
 
-> **Status: no maintainer.** This project is published as-is. Issues and pull requests
-> may not get a response. Fork it freely.
+![Scrolled down to the sources](docs/home-scrolled.png)
+
+> This fork is a personal project shared as-is. The original's design and most of the
+> plumbing (catalogue, inputs, Settings, packaging) are by its authors.
 
 ## Using it
 
 | Where | Key | Does |
 |---|---|---|
-| Home | ↑ ↓ | Move between rows |
-| Home | ← → | Move along a row |
+| Home | ↑ ↓ | Move between lines (moving below the first slides the grid over the top shelf) |
+| Home | ← → | Move along a line |
 | Home | OK | Open the app or input |
 | Settings | OK | Add or remove an app/source |
 | Settings | Hold OK (or **Re-order** button) | Enter/leave re-order mode |
@@ -71,7 +79,9 @@ webOS 6 doesn't let a sideloaded web app list the installed apps or read their i
 So the launcher ships a catalogue ([src/config/catalog.ts](src/config/catalog.ts)) with
 icon copies in [public/icons/apps/](public/icons/apps/), and shows only the entries the TV
 reports as installed (`applicationManager/getAppLoadStatus`, which is allowed). Apps
-without a bundled icon get a plain monogram tile.
+without a bundled icon get a tile with their name. Square icons sit in the middle of the
+wide tile, and the sides are filled with the icon's own edge colours, sampled once with a
+canvas.
 
 To add your own apps or change the default row **without editing tracked files**, copy
 [src/config/catalog.local.example.ts](src/config/catalog.local.example.ts) to
@@ -92,8 +102,9 @@ storage.
 
 ## Compatibility and testing
 
-Tested on **one TV only**: an LG OLED C1 (2021) running **webOS 6.5**, rooted, with the
-Homebrew Channel 0.7.3. Everything else is untested:
+The original was tested on an LG OLED C1 (2021) running **webOS 6.5**, rooted, with the
+Homebrew Channel 0.7.3. This fork's redesign was tested on an unrooted LG 65" TV in
+Developer Mode (Chromium 120). Everything else is untested:
 
 - Newer webOS (22 and later) should run it, since the build targets an older engine, but
   the Luna calls it relies on haven't been confirmed there.
@@ -113,7 +124,7 @@ above.
   in. The CSS avoids flex `gap`, `inset` and `aspect-ratio`.
 - **Luna calls used** (all in the "public" LS2 group a web app gets):
   `applicationManager/launch`, `applicationManager/getAppLoadStatus`,
-  `eim/getAllInputStatus`, `systemservice/getPreferences` (`timeFormat`). Denied to web
+  `eim/getAllInputStatus`. Denied to web
   apps on webOS 6: `listLaunchPoints`, `listApps`, `getAppInfo`, `getForegroundAppInfo`.
 - **Pointer.** The pointer is drawn by the system, so CSS `cursor: none` does nothing;
   the app calls `webOSSystem.setCursorHidden(true)` when it comes to the foreground.
@@ -125,9 +136,10 @@ above.
 src/
   config/      constants (IDs, key codes, Luna URIs) and the app catalogue
   theme/       design tokens (colours, type, layout, motion) and the stylesheet
-  lib/         Luna bridge, launching, inputs, app providers, storage, clock, pointer
-  hooks/       remote keys, OK press/hold, clock tick, time format
-  components/  Header, Clock, Row, Grid, Tile, OptionList, Glyph, Toast
+  lib/         Luna bridge, launching, inputs, app providers, storage, pointer,
+               icon edge colours, baked top-shelf backdrops
+  hooks/       remote keys, OK press/hold
+  components/  Grid, Tile, OptionList, Glyph, Toast
   screens/     Home, Settings
   app.tsx      state, data loading and wiring
 scripts/       package.sh, install.sh, gen-manifest.mjs
@@ -160,4 +172,5 @@ by opening an issue; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). This 
 not affiliated with LG Electronics or any app publisher.
 
 Written with AI assistance (Claude Code), directed, tested and reviewed by a human on a
-real TV.
+real TV. The Apple TV redesign likewise. Apple TV and tvOS are trademarks of Apple Inc.;
+this project isn't affiliated with Apple.

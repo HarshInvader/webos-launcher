@@ -15,7 +15,6 @@ export const LUNA = {
 	launch: 'luna://com.webos.applicationManager/launch',
 	appLoadStatus: 'luna://com.webos.applicationManager/getAppLoadStatus',
 	inputStatus: 'luna://com.webos.service.eim/getAllInputStatus',
-	preferences: 'luna://com.webos.service.systemservice/getPreferences',
 	/** Homebrew Channel's root shell; only used when the user opts in (see lib/apps.ts) */
 	homebrewExec: 'luna://org.webosbrew.hbchannel.service/exec'
 } as const;

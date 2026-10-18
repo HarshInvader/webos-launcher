@@ -6,7 +6,7 @@
 	font-style: normal;
 	font-weight: 100 900;
 	font-display: block;
-	src: url('../assets/inter-latin-wght.woff2') format('woff2');
+	src: url('../assets/inter-variable.woff2') format('woff2');
 }
 
 * { box-sizing: border-box; }
@@ -20,6 +20,9 @@ html, body {
 	background: var(--color-bg);
 	color: var(--color-text-primary);
 	font-family: var(--font-family);
+	/* Inter's optical sizes: large text uses the Display cut, which is drawn close to
+	   Apple's SF Pro Display (SF itself is licensed for Apple platforms only). */
+	font-optical-sizing: auto;
 	-webkit-font-smoothing: antialiased;
 	user-select: none;
 }
@@ -33,86 +36,79 @@ html, body {
 	left: 0; top: 0;
 	width: 100%; height: 100%;
 	padding: 0 var(--layout-edge-padding);
-	background: radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-bg-gradient-inner) 0%, var(--color-bg-gradient-mid) 55%, var(--color-bg-gradient-outer) 100%);
+	background: var(--color-bg);
+	overflow: hidden;
 }
 
-/* ---------- header ---------- */
+/* ---------- home (Apple TV layout) ---------- */
 
-.header {
+.home { padding: 0; }
+
+/* Top shelf: the focused app's art, enlarged and blurred, fading into the canvas. */
+.shelf {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%;
+	height: 820px;
+	overflow: hidden;
+	will-change: opacity, transform;
+	transition: opacity var(--motion-shelf-ms) ease-out, transform var(--motion-shelf-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.home--scrolled .shelf { opacity: 0; transform: translateY(-120px); }
+
+.shelf__layer {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	object-fit: cover;
+	will-change: opacity;
+	animation: shelf-in var(--motion-shelf-ms) ease-out both;
+}
+.shelf__layer--wash { background: #2c2c2e; opacity: 0.85; }
+@keyframes shelf-in { from { opacity: 0; } }
+
+.shelf__fade {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	background:
+		linear-gradient(to bottom, rgba(11, 11, 13, 0) 0%, rgba(11, 11, 13, 0.25) 45%, rgba(11, 11, 13, 0.85) 78%, var(--color-bg) 100%),
+		linear-gradient(to right, rgba(11, 11, 13, 0.55) 0%, rgba(11, 11, 13, 0) 55%);
+}
+
+.shelf__title {
+	position: absolute;
+	left: calc((var(--layout-screen-width) - 5 * var(--layout-home-tile-width) - 4 * var(--layout-home-tile-gap)) / 2);
+	top: 400px;
+	font-size: var(--font-shelf-title);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--color-text-primary);
+	text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
+.home__grid {
 	position: absolute;
 	left: 0; right: 0;
-	top: var(--layout-header-top);
-	text-align: center;
-	pointer-events: none;
-}
-.header__greeting {
-	margin: 0;
-	font-size: var(--font-greeting);
-	font-weight: 300;
-	letter-spacing: -0.01em;
-	color: var(--color-text-primary);
-}
-
-.clock {
-	position: absolute;
-	right: var(--layout-edge-padding);
-	top: var(--layout-header-top);
-	text-align: center;
-	color: var(--color-text-secondary);
-	font-weight: 300;
-	line-height: 1.25;
-	pointer-events: none;
-}
-.clock__line { font-size: var(--font-clock); }
-.clock__time { font-size: var(--font-clock-time); font-weight: 200; letter-spacing: 0.02em; }
-.clock__period { margin-left: 8px; font-size: var(--font-clock-period); font-weight: 300; letter-spacing: 0.08em; }
-
-/* ---------- rows ---------- */
-
-.rows {
-	position: absolute;
-	left: var(--layout-edge-padding);
-	right: var(--layout-edge-padding);
-	top: var(--layout-rows-top);
-}
-
-.row { margin-bottom: var(--layout-row-gap); }
-.row:last-child { margin-bottom: 0; }
-
-.row__label {
-	margin: 0 0 var(--layout-row-label-gap);
-	font-size: var(--font-row-label);
-	font-weight: 500;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--color-text-muted);
-	transition: color var(--motion-focus-ms) ease-out;
-}
-.row--focused .row__label { color: var(--color-text-secondary); }
-
-/* The viewport clips; the track slides. Extra vertical padding leaves room for the
-   focus scale so tiles are never clipped while enlarged. */
-.row__viewport {
-	overflow: hidden;
-	padding: 16px 0;
-	margin: -16px 0;
-	opacity: var(--motion-unfocused-row-opacity);
-	transition: opacity var(--motion-focus-ms) ease-out;
-}
-.row--focused .row__viewport { opacity: 1; }
-
-.row__track {
-	display: flex;
-	flex-direction: row;
-	transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
+	top: var(--layout-home-grid-top);
+	transition: transform var(--motion-shelf-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
 	will-change: transform;
 }
-.row__track--centered { justify-content: center; }
 
-.row__empty {
-	font-size: var(--font-tile-label);
+.home__line {
+	position: absolute;
+	left: 0; right: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	padding-left: calc((var(--layout-screen-width) - 5 * var(--layout-home-tile-width) - 4 * var(--layout-home-tile-gap)) / 2);
+}
+
+.home__empty {
+	height: var(--layout-home-tile-height);
+	line-height: var(--layout-home-tile-height);
+	font-size: var(--font-home-tile-label);
 	color: var(--color-text-muted);
-	font-weight: 400;
 }
 
 /* ---------- tiles ---------- */
@@ -131,16 +127,16 @@ html, body {
 	width: var(--layout-tile-size);
 	height: var(--layout-tile-size);
 	border-radius: var(--layout-tile-radius);
-	background: var(--color-tile-bg);
-	box-shadow: 0 0 0 2px var(--color-tile-border);
+	background: linear-gradient(145deg, rgba(91, 126, 181, 0.52), rgba(24, 42, 70, 0.86));
+	box-shadow: 0 0 0 2px var(--color-tile-border), inset 0 1px 0 rgba(255,255,255,0.05);
 	overflow: hidden;
 	transform: scale(1);
 	transition: transform var(--motion-focus-ms) ease-out, box-shadow var(--motion-focus-ms) ease-out, background var(--motion-focus-ms) ease-out;
 }
 .tile--focused .tile__box {
 	transform: scale(var(--motion-focus-scale));
-	background: var(--color-tile-bg-focus);
-	box-shadow: 0 0 0 5px var(--color-tile-border-focus);
+	background: linear-gradient(145deg, rgba(124, 161, 219, 0.84), rgba(39, 69, 111, 0.98));
+	box-shadow: 0 0 0 4px var(--color-tile-border-focus), inset 0 1px 0 rgba(255,255,255,0.15);
 	z-index: 1;
 }
 
@@ -183,7 +179,7 @@ html, body {
 	/* up to two lines, using a little of the gutter either side, so long input names fit */
 	width: calc(var(--layout-tile-size) + var(--layout-tile-gap) - 8px);
 	height: calc(var(--font-tile-label) * 2.4);
-	margin: 14px 0 0 calc((var(--layout-tile-gap) - 8px) / -2);
+	margin: 12px 0 0 calc((var(--layout-tile-gap) - 8px) / -2);
 	line-height: 1.2;
 	font-size: var(--font-tile-label);
 	font-weight: 400;
@@ -206,6 +202,95 @@ html, body {
 	justify-content: center;
 }
 .tile__badge svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+/* wide tiles (home): tvOS icon shape, lift and shadow on focus, label only when focused */
+
+/* Everything that moves on focus is transform or opacity, so the GPU composites it
+   without repainting: the drop shadow is its own pre-drawn layer that fades in. */
+.tile--wide {
+	position: relative;
+	width: var(--layout-home-tile-width);
+	margin-right: var(--layout-home-tile-gap);
+}
+.tile--wide .tile__box {
+	width: var(--layout-home-tile-width);
+	height: var(--layout-home-tile-height);
+	border-radius: var(--layout-home-tile-radius);
+	background: linear-gradient(to bottom, #48484a, #2c2c2e);
+	box-shadow: none;
+	will-change: transform;
+	transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tile--wide.tile--focused .tile__box {
+	transform: scale(var(--motion-home-focus-scale)) translateY(-6px);
+	box-shadow: none;
+	z-index: 2;
+}
+.tile__shadow {
+	position: absolute;
+	left: 0; top: 0;
+	width: var(--layout-home-tile-width);
+	height: var(--layout-home-tile-height);
+	border-radius: var(--layout-home-tile-radius);
+	box-shadow: 0 34px 46px var(--color-focus-shadow);
+	opacity: 0;
+	will-change: opacity, transform;
+	transition: opacity 220ms ease-out, transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tile--focused .tile__shadow {
+	opacity: 1;
+	transform: scale(var(--motion-home-focus-scale)) translateY(-6px);
+}
+
+/* square artwork sits centred; its blurred copy fills the sides */
+.tile--wide .tile__image {
+	left: 50%;
+	width: var(--layout-home-tile-height);
+	margin-left: calc(var(--layout-home-tile-height) / -2);
+}
+.tile--wide .tile__image--glyph {
+	left: 50%; top: 22%;
+	width: 56%; height: 56%;
+	margin-left: -28%;
+	filter: brightness(3.2);
+}
+.tile--wide .tile__glyph { left: 34%; top: 20%; width: 32%; height: 60%; stroke-width: 1.4; }
+.tile--wide .tile__monogram {
+	font-size: var(--font-home-monogram);
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+/* glossy highlight that catches the light when focused */
+.tile__sheen {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	background: linear-gradient(115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.22) 50%, rgba(255, 255, 255, 0) 65%);
+	opacity: 0;
+	transform: translateX(-100%);
+}
+.tile--focused .tile__sheen { animation: sheen 900ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes sheen {
+	from { opacity: 1; transform: translateX(-100%); }
+	to { opacity: 1; transform: translateX(100%); }
+}
+
+.tile--wide .tile__label {
+	width: 140%;
+	height: auto;
+	margin: 26px 0 0 -20%;
+	font-size: var(--font-home-tile-label);
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--color-text-primary);
+	opacity: 0;
+	transform: translateY(-8px);
+	transition: opacity 200ms ease-out, transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tile--wide.tile--focused .tile__label { opacity: 1; transform: translateY(0); }
 
 /* ---------- settings ---------- */
 
