@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "package": "sh scripts/package.sh",
+    "tv": "node scripts/tvctl.mjs",
     "install:tv": "sh scripts/install.sh",
     "deploy": "npm run build && npm run package && npm run install:tv",
     "manifest": "node scripts/gen-manifest.mjs"
