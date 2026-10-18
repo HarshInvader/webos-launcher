@@ -176,6 +176,7 @@ function TopShelf ({item}: {item?: TileModel}) {
 
 	return (
 		<div class="shelf">
+			<div class="shelf__wallpaper" />
 			{layers.map((layer) => layer.src
 				? <img key={layer.id} class="shelf__layer" src={layer.src} alt="" />
 				: <div key={layer.id} class="shelf__layer shelf__layer--wash" style={layer.color ? {background: layer.color} : undefined} />)}

@@ -64,6 +64,13 @@ html, body {
 	will-change: opacity;
 	animation: shelf-in var(--motion-shelf-ms) ease-out both;
 }
+.shelf__wallpaper {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	background: url('/wallpaper.svg') center / cover no-repeat;
+	opacity: 0.92;
+}
 .shelf__layer--wash { background: #2c2c2e; opacity: 0.85; }
 @keyframes shelf-in { from { opacity: 0; } }
 

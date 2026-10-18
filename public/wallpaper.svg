@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071326"/>
+      <stop offset=".42" stop-color="#17375a"/>
+      <stop offset=".72" stop-color="#6d3f55"/>
+      <stop offset="1" stop-color="#0a1427"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="58%">
+      <stop offset="0" stop-color="#8ec5e8" stop-opacity=".5"/>
+      <stop offset=".5" stop-color="#4278a7" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#0a1427" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ridge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#102a48"/>
+      <stop offset=".5" stop-color="#274d6d"/>
+      <stop offset="1" stop-color="#101d37"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="34"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <ellipse cx="990" cy="430" rx="690" ry="360" fill="url(#glow)" filter="url(#soft)"/>
+  <path d="M-100 900 C260 690 460 770 760 850 S1320 1020 2020 700 L2020 1120 -100 1120Z" fill="url(#ridge)" opacity=".76"/>
+  <path d="M-100 1010 C280 790 550 900 850 950 S1450 1030 2020 820" fill="none" stroke="#83b4d0" stroke-opacity=".2" stroke-width="5"/>
+  <circle cx="1450" cy="235" r="170" fill="#f2bf9b" opacity=".13" filter="url(#soft)"/>
+</svg>
