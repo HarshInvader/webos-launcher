@@ -72,6 +72,13 @@ const BASE_CATALOG: CatalogApp[] = [
 	{id: 'org.jellyfin.webos', title: 'Jellyfin', color: '#00a4dc'}
 ];
 
+/** Promotional/bloat entries that should never be offered by this launcher. */
+export const HIDDEN_APP_IDS = new Set([
+	'com.plutotv.app'
+]);
+
+export const HIDDEN_APP_TITLE = /^(bell|sports playbook|streaming week|8 ball pool|lg gaming portal|room to room share)$/i;
+
 /** Apps shown on a fresh install, in row order. Anything not installed is skipped. */
 const BASE_DEFAULT_APP_IDS: string[] = [
 	'youtube.leanback.v4', 'netflix', 'amazon', 'com.disney.disneyplus-prod',
@@ -87,5 +94,6 @@ function mergeCatalog (base: CatalogApp[], extra: CatalogApp[]): CatalogApp[] {
 	return base.filter((a) => extraIds.indexOf(a.id) === -1).concat(extra);
 }
 
-export const APP_CATALOG: CatalogApp[] = mergeCatalog(BASE_CATALOG, local.EXTRA_APPS || []);
+export const APP_CATALOG: CatalogApp[] = mergeCatalog(BASE_CATALOG, local.EXTRA_APPS || [])
+	.filter((app) => !HIDDEN_APP_IDS.has(app.id) && !HIDDEN_APP_TITLE.test(app.title));
 export const DEFAULT_APP_IDS: string[] = local.DEFAULT_APP_IDS || BASE_DEFAULT_APP_IDS;

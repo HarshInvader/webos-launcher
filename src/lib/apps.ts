@@ -7,7 +7,7 @@
 //     gives the live list with LG's own titles, and to read each icon as base64. If the
 //     service isn't there, we fall back to the catalogue.
 
-import {APP_CATALOG, type CatalogApp} from '../config/catalog';
+import {APP_CATALOG, HIDDEN_APP_IDS, HIDDEN_APP_TITLE, type CatalogApp} from '../config/catalog';
 import {APP_ID, LUNA} from '../config/constants';
 import {isWebOS, lunaCall, type LunaResponse} from './luna';
 import {appExists} from './launch';
@@ -61,7 +61,7 @@ interface ExecResponse extends LunaResponse { stdoutString?: string; }
 interface LaunchPoint { id: string; title: string; largeIcon?: string; icon?: string; }
 
 /** Apps LG lists but that make no sense on a launcher (ourselves, promos). */
-const HIDDEN_IDS = [APP_ID, 'google.assistant.promo', 'com.webos.app.discovery'];
+const HIDDEN_IDS = new Set([APP_ID, 'google.assistant.promo', 'com.webos.app.discovery', ...HIDDEN_APP_IDS]);
 
 const ICON_CACHE_KEY = 'launcher-icon-cache-v1';
 
@@ -82,7 +82,7 @@ function listViaHomebrew (): Promise<AppEntry[]> {
 	return exec("luna-send -n 1 luna://com.webos.applicationManager/listLaunchPoints '{}'")
 		.then((out) => {
 			const parsed = JSON.parse(out) as {launchPoints?: LaunchPoint[]};
-			const points = (parsed.launchPoints || []).filter((p) => p.id && p.title && HIDDEN_IDS.indexOf(p.id) === -1);
+			const points = (parsed.launchPoints || []).filter((p) => p.id && p.title && !HIDDEN_IDS.has(p.id) && !HIDDEN_APP_TITLE.test(p.title));
 			if (!points.length) throw new Error('no launch points');
 			return loadIcons(points).then((icons) => points.map((p) => {
 				const known = APP_CATALOG.find((c) => c.id === p.id);
