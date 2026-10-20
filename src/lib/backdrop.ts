@@ -18,7 +18,7 @@ export function backdrop (url: string): Promise<string | null> {
 				const ctx = canvas.getContext('2d')!;
 				ctx.fillStyle = '#0b0b0d';
 				ctx.fillRect(0, 0, WIDTH, HEIGHT);
-				ctx.filter = 'blur(7px) saturate(1.4) brightness(0.72)';
+				if ('filter' in ctx) ctx.filter = 'blur(7px) saturate(1.4) brightness(0.72)';
 				// cover, slightly oversized so the blur has no soft edge
 				const scale = Math.max(WIDTH / img.naturalWidth, HEIGHT / img.naturalHeight) * 1.3;
 				const w = img.naturalWidth * scale;

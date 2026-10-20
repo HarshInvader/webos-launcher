@@ -21,8 +21,13 @@ const targets = {
 };
 
 const [command, rawTarget, ...rest] = process.argv.slice(2);
+if (command === 'info' && !rawTarget && !rest.length) {
+	runAres(['ares-device', '--system-info', '--device', device]);
+	process.exit(0);
+}
+
 if (command !== 'open' || !rawTarget || rest.length) {
-	console.error('Usage: npm run tv -- open <youtube|netflix|prime|apple-tv|lg-home|settings|live-tv|hdmi1..4>');
+	console.error('Usage: npm run tv -- info | open <youtube|netflix|prime|apple-tv|lg-home|settings|live-tv|hdmi1..4>');
 	process.exit(2);
 }
 
@@ -32,5 +37,15 @@ if (!target) {
 	process.exit(2);
 }
 
-execFileSync('./node_modules/.bin/ares-launch', ['-d', device, target], {stdio: 'inherit'});
+runAres(['ares-launch', '-d', device, target]);
 console.log(`Opened ${rawTarget} on ${device}`);
+
+function runAres (args) {
+	const [commandName, ...commandArgs] = args;
+	try {
+		execFileSync(`./node_modules/.bin/${commandName}`, commandArgs, {stdio: 'inherit'});
+	} catch {
+		console.error(`Could not connect to ${device}. Check Developer Mode and port 9922.`);
+		process.exit(1);
+	}
+}

@@ -1,12 +1,14 @@
 {
   "name": "webos-launcher",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "private": true,
-  "description": "Minimalist home-screen launcher for LG webOS TVs (webOS 6 / Chrome 79 compatible)",
+  "description": "Apple TV-style home screen launcher for LG webOS TVs (webOS 4+ / Chromium 53+ compatible)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "check:appinfo": "node scripts/check-appinfo.mjs",
     "package": "sh scripts/package.sh",
     "tv": "node scripts/tvctl.mjs",
     "install:tv": "sh scripts/install.sh",

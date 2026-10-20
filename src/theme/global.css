@@ -1,5 +1,5 @@
 /* Global styles. Values come from tokens.ts via CSS custom properties (see applyTokens).
-   Written for Chrome 79: no flex `gap`, no `inset`, no `aspect-ratio`. */
+   Written for Chrome 53: no CSS Grid, flex `gap`, `inset` or `aspect-ratio`. */
 
 @font-face {
 	font-family: 'Inter Variable';
@@ -43,6 +43,43 @@ html, body {
 /* ---------- home (Apple TV layout) ---------- */
 
 .home { padding: 0; }
+
+.home__header {
+	position: absolute;
+	left: var(--layout-edge-padding);
+	right: var(--layout-edge-padding);
+	top: var(--layout-header-top);
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: space-between;
+	z-index: 2;
+	text-shadow: 0 2px 20px rgba(0, 0, 0, 0.45);
+	transition: opacity var(--motion-shelf-ms) ease-out, transform var(--motion-shelf-ms) ease-out;
+}
+.home__greeting {
+	font-size: var(--font-home-greeting);
+	font-weight: 600;
+	letter-spacing: -0.03em;
+}
+.home__time {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	color: var(--color-text-secondary);
+}
+.home__date {
+	margin-right: 24px;
+	font-size: var(--font-home-date);
+	text-transform: capitalize;
+}
+.home__clock {
+	font-size: var(--font-home-clock);
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	color: var(--color-text-primary);
+}
+.home--scrolled .home__header { opacity: 0; transform: translateY(-36px); }
 
 /* Top shelf: the focused app's art, enlarged and blurred, fading into the canvas. */
 .shelf {
@@ -94,10 +131,26 @@ html, body {
 	text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
+.home__dock {
+	position: absolute;
+	left: 50%;
+	top: var(--layout-home-dock-top);
+	display: flex;
+	flex-direction: row;
+	padding: 18px 24px 8px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 32px;
+	background: rgba(38, 38, 42, 0.78);
+	box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	transform: translateX(-50%);
+	transition: opacity var(--motion-shelf-ms) ease-out, transform var(--motion-shelf-ms) ease-out;
+}
+.home--scrolled .home__dock { opacity: 0; transform: translate(-50%, -120px); }
+
 .home__grid {
 	position: absolute;
 	left: 0; right: 0;
-	top: var(--layout-home-grid-top);
+	top: var(--layout-home-content-top);
 	transition: transform var(--motion-shelf-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
 	will-change: transform;
 }
@@ -368,15 +421,17 @@ html, body {
 	padding: 16px 0;
 }
 .grid__track {
-	display: grid;
-	grid-template-columns: repeat(var(--layout-grid-columns), var(--layout-tile-size));
-	grid-column-gap: var(--layout-tile-gap);
-	grid-row-gap: 40px;
-	justify-content: center;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	justify-content: flex-start;
+	margin: 0 auto;
 	transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
 	will-change: transform;
 }
-.grid__track .tile { margin-right: 0; }
+.grid__track .tile { margin-right: var(--layout-tile-gap); margin-bottom: 40px; }
+.grid__track .tile:nth-child(9n) { margin-right: 0; }
 .tile--dimmed .tile__box { opacity: 0.45; }
 
 /* re-order mode: the picked-up tile floats above the others */

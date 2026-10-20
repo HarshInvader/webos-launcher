@@ -29,6 +29,7 @@ export interface AppList {
 }
 
 const ICON_DIR = 'icons/apps/';
+const APP_CHECK_BATCH_SIZE = 4;
 
 export function listApps (useHomebrew: boolean): Promise<AppList> {
 	if (!isWebOS()) return Promise.resolve({apps: catalogEntries(APP_CATALOG), source: 'catalog'});
@@ -51,8 +52,14 @@ function catalogEntries (apps: CatalogApp[]): AppEntry[] {
 }
 
 function listViaCatalog (): Promise<AppEntry[]> {
-	return Promise.all(APP_CATALOG.map((a) => appExists(a.id)))
-		.then((present) => catalogEntries(APP_CATALOG.filter((_, i) => present[i])));
+	const present: boolean[] = [];
+	let checks = Promise.resolve();
+	for (let i = 0; i < APP_CATALOG.length; i += APP_CHECK_BATCH_SIZE) {
+		const batch = APP_CATALOG.slice(i, i + APP_CHECK_BATCH_SIZE);
+		checks = checks.then(() => Promise.all(batch.map((app) => appExists(app.id)))
+			.then((batchPresent) => { present.push(...batchPresent); }));
+	}
+	return checks.then(() => catalogEntries(APP_CATALOG.filter((_, i) => present[i])));
 }
 
 // ---------- provider 2: Homebrew Channel (opt-in) ----------

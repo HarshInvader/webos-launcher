@@ -1,7 +1,7 @@
 name: Release
 
 # Push a tag matching the version in public/appinfo.json, e.g.:
-#   git tag v1.0.0 && git push origin v1.0.0
+#   git tag v1.0.3 && git push origin v1.0.3
 on:
   push:
     tags: ['v*']
@@ -29,12 +29,22 @@ jobs:
           fi
 
       - run: npm ci
+      - run: npm test
+      - run: npm run check:appinfo
       - run: npm run build
 
       - name: Check bundle has no ES2020+ syntax
         run: |
           if grep -qE '\?\.[A-Za-z_$(\[]|\?\?' dist/assets/app.js; then
-            echo "dist/assets/app.js contains syntax Chrome 79 cannot parse" >&2
+            echo "dist/assets/app.js contains syntax Chrome 53 cannot parse" >&2
+            exit 1
+          fi
+          if grep -q 'type="module"' dist/index.html; then
+            echo "dist/index.html still contains a module script" >&2
+            exit 1
+          fi
+          if grep -qE 'display:grid|grid-template|grid-column|grid-row' dist/assets/app.js; then
+            echo "dist/assets/app.js contains CSS Grid, which Chrome 53 cannot render" >&2
             exit 1
           fi
 

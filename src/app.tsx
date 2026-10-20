@@ -11,6 +11,7 @@ import {isWebOS} from './lib/luna';
 import {hidePointerOnForeground} from './lib/pointer';
 import {loadConfig, saveConfig, toggleId, type UserConfig} from './lib/storage';
 import {appTile, inputTile, pickInOrder} from './lib/tiles';
+import {splitHomeApps} from './lib/homeLayout';
 import {TIMING} from './config/constants';
 
 type Screen = 'home' | 'settings';
@@ -68,16 +69,18 @@ export function App () {
 
 	// ----- derived rows -----
 	const shownApps = useMemo(() => pickInOrder(apps, config.appIds, (a) => a.id), [apps, config.appIds]);
+	const {dock, remaining} = useMemo(() => splitHomeApps(shownApps), [shownApps]);
+	const dockItems = useMemo(() => dock.map(appTile), [dock]);
 	const shownInputs = useMemo(
 		() => (config.sourceIds ? pickInOrder(inputs, config.sourceIds, (s) => s.appId) : inputs),
 		[inputs, config.sourceIds]
 	);
 
 	const rows: HomeRow[] = useMemo(() => [
-		{id: ROW.apps, label: 'Apps', items: shownApps.map(appTile), emptyText: 'No apps selected — add some in Settings'},
+		{id: ROW.apps, label: 'Apps', items: remaining.map(appTile), emptyText: shownApps.length === 0 ? 'No apps selected — add some in Settings' : undefined},
 		{id: ROW.sources, label: 'Sources', items: shownInputs.map(inputTile), emptyText: 'No sources selected'},
 		{id: ROW.misc, label: 'More', items: MISC_TILES}
-	], [shownApps, shownInputs]);
+	], [remaining, shownApps.length, shownInputs]);
 
 	const tabs: SettingsTab[] = useMemo(() => [
 		{id: ROW.apps, label: 'Apps', noun: 'apps', items: apps.map(appTile), shown: shownApps.map(appTile)},
@@ -129,7 +132,7 @@ export function App () {
 	return (
 		<>
 			{/* Home stays mounted under Settings so it keeps its focus position. */}
-			<Home rows={rows} active={screen === 'home'} onActivate={onActivate} />
+			<Home dockItems={dockItems} rows={rows} active={screen === 'home'} onActivate={onActivate} />
 			{screen === 'settings' && <Settings tabs={tabs} options={options} active onToggle={onToggle} onReorder={onReorder} onOption={onOption} onClose={() => setScreen('home')} />}
 			<Toast message={toast} />
 		</>

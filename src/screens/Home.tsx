@@ -4,6 +4,8 @@ import {Tile, type TileModel} from '../components/Tile';
 import {useKeys, clamp, type NavKey} from '../hooks/useKeys';
 import {LAYOUT} from '../theme/tokens';
 import {backdrop} from '../lib/backdrop';
+import {formatHomeDate, formatHomeTime, getHomeGreeting} from '../lib/homeClock';
+import {nearestFocusableLine, nextFocusableLine} from '../lib/homeLayout';
 
 export interface HomeRow {
 	id: string;
@@ -13,10 +15,13 @@ export interface HomeRow {
 }
 
 interface Props {
+	dockItems: TileModel[];
 	rows: HomeRow[];
 	active: boolean;
 	onActivate: (rowId: string, item: TileModel) => void;
 }
+
+type FocusArea = 'dock' | 'content';
 
 /** One line of the grid: up to `homeColumns` tiles from a single section, or a
  *  section's empty message. */
@@ -28,7 +33,7 @@ interface Line {
 
 const LINE_STEP = LAYOUT.homeTileHeight + LAYOUT.homeLineGap;
 
-/** Lays the sections out as one grid, `homeColumns` wide, the way tvOS does. */
+/** Lays the lower sections out as one grid, `homeColumns` wide. */
 function toLines (rows: HomeRow[]): Line[] {
 	const lines: Line[] = [];
 	for (const row of rows) {
@@ -43,37 +48,74 @@ function toLines (rows: HomeRow[]): Line[] {
 	return lines;
 }
 
-/** The home screen, modelled on the Apple TV: a top shelf showing the focused app's
- *  artwork, then a grid of wide icons. Focus in the first line keeps the top shelf in
- *  view; moving below it scrolls the grid up over it. */
-export function Home ({rows, active, onActivate}: Props) {
+/** Apple TV-style home: focused artwork above a four-app dock and scrollable content. */
+export function Home ({dockItems, rows, active, onActivate}: Props) {
 	const lines = useMemo(() => toLines(rows), [rows]);
-	const [focus, setFocus] = useState({line: 0, col: 0});
+	const [focus, setFocus] = useState({area: 'dock' as FocusArea, line: 0, col: 0});
+	const [now, setNow] = useState(() => new Date());
+
+	useEffect(() => {
+		const updateTime = () => setNow(new Date());
+		const onVisibility = () => { if (!document.hidden) updateTime(); };
+		const timer = window.setInterval(updateTime, 60000);
+		document.addEventListener('visibilitychange', onVisibility);
+		return () => {
+			window.clearInterval(timer);
+			document.removeEventListener('visibilitychange', onVisibility);
+		};
+	}, []);
 
 	// Keep focus on a real tile when the lists change underneath it.
 	const focusable = lines.map((l) => l.items.length > 0);
-	const lineIndex = nearestFocusable(focusable, clamp(focus.line, 0, Math.max(0, lines.length - 1)), 1);
-	const line = lines[lineIndex];
-	const col = line ? clamp(focus.col, 0, Math.max(0, line.items.length - 1)) : 0;
-	const focused = line && line.items[col];
+	const firstContentLine = nextFocusableLine(focusable, -1, 1);
+	const lineIndex = firstContentLine === -1
+		? -1
+		: nearestFocusableLine(focusable, clamp(focus.line, 0, lines.length - 1), 1);
+	const line = lineIndex === -1 ? undefined : lines[lineIndex];
+	const onDock = dockItems.length > 0 && focus.area === 'dock';
+	const dockCol = dockItems.length > 0 ? clamp(focus.col, 0, dockItems.length - 1) : 0;
+	const contentCol = line ? clamp(focus.col, 0, line.items.length - 1) : 0;
+	const focused = onDock ? dockItems[dockCol] : line && line.items[contentCol];
 
 	const handleKey = useCallback((key: NavKey): boolean => {
 		if (!focused) return key === 'back';
+		if (onDock) {
+			switch (key) {
+				case 'up': return true;
+				case 'down':
+					if (firstContentLine !== -1) {
+						setFocus({area: 'content', line: firstContentLine, col: clamp(dockCol, 0, lines[firstContentLine].items.length - 1)});
+					}
+					return true;
+				case 'left': setFocus({area: 'dock', line: 0, col: clamp(dockCol - 1, 0, dockItems.length - 1)}); return true;
+				case 'right': setFocus({area: 'dock', line: 0, col: clamp(dockCol + 1, 0, dockItems.length - 1)}); return true;
+				case 'enter': onActivate('apps', focused); return true;
+				case 'back': return true;
+			}
+		}
+
+		if (!line || lineIndex === -1) return key === 'back';
 		switch (key) {
-			case 'up':
-			case 'down': {
-				const next = nextFocusable(focusable, lineIndex, key === 'up' ? -1 : 1);
-				if (next !== -1) setFocus({line: next, col: clamp(col, 0, lines[next].items.length - 1)});
+			case 'up': {
+				if (lineIndex === firstContentLine && dockItems.length > 0) {
+					setFocus({area: 'dock', line: 0, col: clamp(contentCol, 0, dockItems.length - 1)});
+					return true;
+				}
+				const previous = nextFocusableLine(focusable, lineIndex, -1);
+				if (previous !== -1) setFocus({area: 'content', line: previous, col: clamp(contentCol, 0, lines[previous].items.length - 1)});
 				return true;
 			}
-			case 'left': setFocus({line: lineIndex, col: clamp(col - 1, 0, line.items.length - 1)}); return true;
-			case 'right': setFocus({line: lineIndex, col: clamp(col + 1, 0, line.items.length - 1)}); return true;
-			case 'enter':
-				if (focused) onActivate(line.rowId, focused);
+			case 'down': {
+				const next = nextFocusableLine(focusable, lineIndex, 1);
+				if (next !== -1) setFocus({area: 'content', line: next, col: clamp(contentCol, 0, lines[next].items.length - 1)});
 				return true;
+			}
+			case 'left': setFocus({area: 'content', line: lineIndex, col: clamp(contentCol - 1, 0, line.items.length - 1)}); return true;
+			case 'right': setFocus({area: 'content', line: lineIndex, col: clamp(contentCol + 1, 0, line.items.length - 1)}); return true;
+			case 'enter': onActivate(line.rowId, focused); return true;
 			case 'back': return true;   // swallow: Back on the home screen does nothing
 		}
-	}, [lines, lineIndex, col, onActivate]);
+	}, [focused, onDock, firstContentLine, dockCol, lines, dockItems.length, line, lineIndex, focusable, contentCol, onActivate]);
 
 	useKeys(handleKey, active);
 
@@ -82,26 +124,44 @@ export function Home ({rows, active, onActivate}: Props) {
 	const latest = useRef({onActivate});
 	latest.current.onActivate = onActivate;
 	const tileApi = useMemo<TileApi>(() => ({
-		hover: (line, col) => setFocus({line, col}),
+		hover: (area, line, col) => setFocus({area, line, col}),
 		activate: (rowId, item) => latest.current.onActivate(rowId, item)
 	}), []);
 
-	// Bake the top-shelf backdrops for the first line up front so moving along it is instant.
+	// Bake the dock backdrops up front so moving along it is instant.
 	useEffect(() => {
-		if (lines[0]) lines[0].items.forEach((item) => { const art = shelfArt(item); if (art) backdrop(art); });
-	}, [lines]);
+		dockItems.forEach((item) => { const art = shelfArt(item); if (art) backdrop(art); });
+	}, [dockItems]);
 
-	const onShelf = lineIndex === 0;
 	// Lower lines scroll up to sit near the top, but never past the point where the last
 	// line reaches the bottom margin.
-	const lastLineBottom = LAYOUT.homeGridTop + lines.length * LINE_STEP - LAYOUT.homeLineGap;
+	const lastLineBottom = LAYOUT.homeContentTop + lines.length * LINE_STEP - LAYOUT.homeLineGap;
 	const maxOffset = Math.max(0, lastLineBottom - (LAYOUT.screenHeight - LAYOUT.homeBottomMargin));
-	const offset = onShelf ? 0 : clamp(LAYOUT.homeGridTop + lineIndex * LINE_STEP - LAYOUT.homeFocusTop, 0, maxOffset);
-	const shelfItem = lines[0] && lines[0].items[onShelf ? col : 0];
+	const offset = onDock || lineIndex === -1
+		? 0
+		: clamp(LAYOUT.homeContentTop + lineIndex * LINE_STEP - LAYOUT.homeFocusTop, 0, maxOffset);
+	const shelfItem = focused || dockItems[0];
 
 	return (
-		<div class={`screen home${onShelf ? '' : ' home--scrolled'}`}>
+		<div class={`screen home${onDock ? '' : ' home--scrolled'}`}>
+			<HomeHeader now={now} />
 			<TopShelf item={shelfItem} />
+			{dockItems.length > 0 && (
+				<div class="home__dock">
+					{dockItems.map((item, col) => (
+						<HomeTile
+							key={item.key}
+							item={item}
+							rowId="apps"
+							area="dock"
+							line={0}
+							col={col}
+							focused={onDock && col === dockCol}
+							api={tileApi}
+						/>
+					))}
+				</div>
+			)}
 			<div class="home__grid" style={{transform: `translateY(${-offset}px)`}}>
 				{lines.map((l, i) => (
 					<div key={`${l.rowId}-${i}`} class="home__line" style={{top: `${i * LINE_STEP}px`}}>
@@ -112,9 +172,10 @@ export function Home ({rows, active, onActivate}: Props) {
 									key={item.key}
 									item={item}
 									rowId={l.rowId}
+									area="content"
 									line={i}
 									col={c}
-									focused={i === lineIndex && c === col}
+									focused={!onDock && i === lineIndex && c === contentCol}
 									api={tileApi}
 								/>
 							))}
@@ -125,22 +186,35 @@ export function Home ({rows, active, onActivate}: Props) {
 	);
 }
 
+function HomeHeader ({now}: {now: Date}) {
+	return (
+		<header class="home__header">
+			<div class="home__greeting">{getHomeGreeting(now)}</div>
+			<div class="home__time">
+				<span class="home__date">{formatHomeDate(now)}</span>
+				<span class="home__clock">{formatHomeTime(now)}</span>
+			</div>
+		</header>
+	);
+}
+
 interface TileApi {
-	hover: (line: number, col: number) => void;
+	hover: (area: FocusArea, line: number, col: number) => void;
 	activate: (rowId: string, item: TileModel) => void;
 }
 
 interface HomeTileProps {
 	item: TileModel;
 	rowId: string;
+	area: FocusArea;
 	line: number;
 	col: number;
 	focused: boolean;
 	api: TileApi;
 }
 
-const HomeTile = memo(function HomeTile ({item, rowId, line, col, focused, api}: HomeTileProps) {
-	return <Tile model={item} wide focused={focused} onHover={() => api.hover(line, col)} onActivate={() => api.activate(rowId, item)} />;
+const HomeTile = memo(function HomeTile ({item, rowId, area, line, col, focused, api}: HomeTileProps) {
+	return <Tile model={item} wide focused={focused} onHover={() => api.hover(area, line, col)} onActivate={() => api.activate(rowId, item)} />;
 });
 
 function shelfArt (item?: TileModel): string | undefined {
@@ -184,15 +258,4 @@ function TopShelf ({item}: {item?: TileModel}) {
 			{item && <div class="shelf__title">{item.label}</div>}
 		</div>
 	);
-}
-
-function nextFocusable (focusable: boolean[], from: number, dir: 1 | -1): number {
-	for (let i = from + dir; i >= 0 && i < focusable.length; i += dir) if (focusable[i]) return i;
-	return -1;
-}
-
-function nearestFocusable (focusable: boolean[], at: number, dir: 1 | -1): number {
-	if (focusable[at]) return at;
-	const ahead = nextFocusable(focusable, at, dir);
-	return ahead !== -1 ? ahead : Math.max(0, nextFocusable(focusable, at, dir === 1 ? -1 : 1));
 }

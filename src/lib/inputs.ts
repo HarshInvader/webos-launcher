@@ -31,6 +31,13 @@ interface EimResponse extends LunaResponse {
 
 const FALLBACK_ICON = 'hdmigeneric.png';
 
+const LEGACY_INPUTS: InputSource[] = [
+	{id: 'HDMI_1', appId: 'com.webos.app.hdmi1', label: 'HDMI 1', port: 1, connected: true, icon: 'HDMI_1.png'},
+	{id: 'HDMI_2', appId: 'com.webos.app.hdmi2', label: 'HDMI 2', port: 2, connected: true, icon: 'HDMI_2.png'},
+	{id: 'HDMI_3', appId: 'com.webos.app.hdmi3', label: 'HDMI 3', port: 3, connected: true, icon: 'HDMI_3.png'},
+	{id: 'HDMI_4', appId: 'com.webos.app.hdmi4', label: 'HDMI 4', port: 4, connected: true, icon: 'HDMI_4.png'}
+];
+
 /** Live TV isn't an EIM device, but launching its app switches to the tuner, so it
  *  behaves like any other source. Port 0 sorts it ahead of HDMI 1. */
 const LIVE_TV: InputSource = {
@@ -43,13 +50,16 @@ const LIVE_TV: InputSource = {
 };
 
 export function listInputs (): Promise<InputSource[]> {
-	return Promise.all([listExternalInputs(), appExists(LIVE_TV.appId)])
+	return Promise.all([listExternalInputs().catch(() => listLegacyInputs()), appExists(LIVE_TV.appId)])
 		.then(([external, hasTuner]) => (hasTuner ? [LIVE_TV] : []).concat(external));
 }
 
 function listExternalInputs (): Promise<InputSource[]> {
-	return lunaCall<EimResponse>(LUNA.inputStatus, {}).then((r) =>
-		(r.devices || [])
+	return lunaCall<EimResponse>(LUNA.inputStatus, {}).then((r) => {
+		const devices = r.devices || [];
+		if (!devices.length) return listLegacyInputs();
+
+		return devices
 			.filter((d) => d.appId && d.label)
 			.sort((a, b) => a.port - b.port)
 			.map((d) => ({
@@ -59,8 +69,14 @@ function listExternalInputs (): Promise<InputSource[]> {
 				port: d.port,
 				connected: d.connected !== false,
 				icon: d.icon || FALLBACK_ICON
-			}))
-	);
+			}));
+	});
+}
+
+function listLegacyInputs (): Promise<InputSource[]> {
+	return Promise.all(LEGACY_INPUTS.map((input) =>
+		appExists(input.appId).then((exists) => exists ? input : null)
+	)).then((inputs) => inputs.filter((input): input is InputSource => input !== null));
 }
 
 /** Sample data so the layout can be developed in a desktop browser. */

@@ -30,6 +30,9 @@ export const FONT = {
 	family: '"Inter Variable", "LG Smart UI", "Helvetica Neue", Arial, sans-serif',
 	tileLabel: 18,
 	homeTileLabel: 25,
+	homeGreeting: 42,
+	homeDate: 20,
+	homeClock: 34,
 	shelfTitle: 76,
 	homeMonogram: 44,
 	settingsTitle: 40,
@@ -55,7 +58,8 @@ export const LAYOUT = {
 	homeTileGap: 48,
 	homeTileRadius: 14,
 	homeLineGap: 84,        // room for the focused tile's label
-	homeGridTop: 662,       // first line; the second peeks in at the bottom
+	homeDockTop: 570,
+	homeContentTop: 930,    // lower content peeks in beneath the dock
 	homeFocusTop: 150,      // where a lower line sits once the grid has scrolled up
 	homeBottomMargin: 140,  // the grid never scrolls its last line above this
 	gridColumns: 9          // settings picker grid

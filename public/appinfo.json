@@ -1,16 +1,20 @@
 {
   "id": "works.partridge.webos-launcher",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "vendor": "works.partridge.webos-launcher",
   "type": "web",
   "main": "index.html",
   "title": "Launcher",
-  "appDescription": "Minimalist home screen: apps, inputs and a way back to LG's home.",
+  "appDescription": "Apple TV-style home screen with a favorites dock, apps, inputs and a local clock.",
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "iconColor": "#050505",
   "bgColor": "#000000",
   "resolution": "1920x1080",
   "disableBackHistoryAPI": true,
-  "transparent": false
+  "transparent": false,
+  "requiredACG": [
+    "application.launcher",
+    "application.query"
+  ]
 }

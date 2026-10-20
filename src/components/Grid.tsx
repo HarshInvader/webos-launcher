@@ -27,10 +27,11 @@ export function Grid ({items, mode, checkedKeys, liftedIndex, focused, selected,
 	const rowIndex = Math.floor(selected / LAYOUT.gridColumns);
 	const offset = total <= VIEWPORT_HEIGHT ? 0
 		: clamp(rowIndex * ROW_STEP - (VIEWPORT_HEIGHT - ROW_STEP) / 2, 0, total - VIEWPORT_HEIGHT);
+	const trackWidth = LAYOUT.gridColumns * LAYOUT.tileSize + (LAYOUT.gridColumns - 1) * LAYOUT.tileGap;
 
 	return (
 		<div class="grid__viewport">
-			<div class="grid__track" style={{transform: `translateY(${-offset}px)`}}>
+			<div class="grid__track" style={{width: `${trackWidth}px`, transform: `translateY(${-offset}px)`}}>
 				{items.map((item, i) => {
 					const checked = mode === 'select' && checkedKeys.indexOf(item.key) !== -1;
 					return (
